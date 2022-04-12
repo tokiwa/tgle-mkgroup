@@ -17,18 +17,12 @@ def mkgroup():
     gdata = request.get_data().decode('utf-8')
     # JSONはダブルクォーテーション "　を使うため、postmanのjsonデータの設定に注意すること 2022/4/8
     jdata = json.loads(gdata)  # JSON文字列を辞書に変換する
-    # print(jdata)
     # 部分的な取り出しはkeyを利用する。
-    # print(jdata['groupKeyword'])
     groupKeyword = jdata['groupKeyword']
     keyword = jdata['student']
-    #for i in range(len(jdata['student'])):
-    #    print(jdata['student'][i])
 
     len_u = len(keyword)
     len_g = len(groupKeyword)
-    # print('len_g',len_g)
-    # print('len_u',len_u)
 
     sim = []
     for i in range(len_u):
