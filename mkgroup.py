@@ -43,6 +43,7 @@ def mkgroup():
     len_j = len(sim[0])  # 3
 
     gkey = [[] for j in range(len_j)]
+    assign = []
     similarity_max = [[0 for i in range(len_j)] for j in range(len_i)]  # 初期化
 
     for i in range(len_i):
@@ -67,8 +68,7 @@ def mkgroup():
             # jsonifyのjson.dumpsはnumpy.int型を処理できないので、intにcaskする。
             # 参考　https://qiita.com/exp/items/2253e32c22e81e688ef4
             gkey[s].append(u.item())
-
-            # gkey[s].append(u)
+            assign.append([u.item(),s.item()])  # u: number of user array,  s: number of group array
             # print(gkey)
             nps_copy[u] = -1  # similarityが最大であったユーザ行を対象外(-1)にする。
             nps[u] = -1  # similarityが最大であったユーザ行を対象外(-1)にする。
@@ -82,15 +82,16 @@ def mkgroup():
         if flag:
             break
     print('Result:',gkey)
+    print('assign:',assign)
 
+    #   print('assign',assign)
     # print(type(gkey))
     # for g in gkey:
     #     print(g)
     #     print(type(g[0]))
 
-#    return jsonify({"result":"gkey"}), 200
-    return jsonify(json.dumps(gkey)), 200
-
+#    return jsonify(json.dumps(gkey)), 200
+    return jsonify(json.dumps(assign)), 200
 
 @app.route('/postdata', methods=['POST'])
 def postdata():
