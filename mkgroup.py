@@ -37,26 +37,21 @@ def mkgroup():
             sim_g.append(sim_kw)
         print(sim_g)
         sim.append(sim_g)
-    #print(sim)
 
     len_i = len(sim)  # 7
     len_j = len(sim[0])  # 3
 
     gkey = [[] for j in range(len_j)]
-    assign = []
+    assign = {}
     similarity_max = [[0 for i in range(len_j)] for j in range(len_i)]  # 初期化
 
     for i in range(len_i):
         for j in range(len_j):
             similarity_max[i][j] = max(sim[i][j])
-        # print(similarity_max[i])
 
     len_g = len(gkey)  # 3  行数：教員のグループキーワード数
-    # len_gu = len(gkey[0])   # 7　列数：Similarityの高いユーザID順
     group = [[] for i in range(len_g)]  # 初期化
     nps = np.array(similarity_max)
-    # print(nps)
-    # print(nps_copy)
     count = 0
     flag = False
     while True:
@@ -65,31 +60,24 @@ def mkgroup():
         for i in range(len_g):
             u, s = np.unravel_index(np.argmax(nps_copy), nps_copy.shape)
 
-            # jsonifyのjson.dumpsはnumpy.int型を処理できないので、intにcaskする。
+            # jsonifyのjson.dumpsはnumpy.int型を処理できないので、item()を用いてintにcaskする。
             # 参考　https://qiita.com/exp/items/2253e32c22e81e688ef4
             gkey[s].append(u.item())
-            assign.append([u.item(),s.item()])  # u: number of user array,  s: number of group array
+            assign[str(u.item())] = s.item()  # key: ポストされたユーザ番号(0〜)　value: アサインされたグループ
+
             # print(gkey)
             nps_copy[u] = -1  # similarityが最大であったユーザ行を対象外(-1)にする。
             nps[u] = -1  # similarityが最大であったユーザ行を対象外(-1)にする。
             nps_copy[:, s] = -1  # 教員のKeyword列を対象外(-1)にする。
             count += 1
-            #        print(count)
-            # print(nps_copy)
             if count == len_u:
                 flag = True
                 break
         if flag:
             break
-    print('Result:',gkey)
-    print('assign:',assign)
 
-    #   print('assign',assign)
-    # print(type(gkey))
-    # for g in gkey:
-    #     print(g)
-    #     print(type(g[0]))
-
+#    戻り値　グループにアサインされたユーザ: gkey, ユーザにアサインされたグループ: assign
+#    この実装ではassignとした。
 #    return jsonify(json.dumps(gkey)), 200
     return jsonify(json.dumps(assign)), 200
 
