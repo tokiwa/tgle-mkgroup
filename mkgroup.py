@@ -1,11 +1,14 @@
 import base64
+import os
 
 from flask import *
 import json
 import numpy as np
 import requests
 
-url = "http://192.168.1.105:5555/similarity"
+# url = "http://192.168.1.105:5555/openai"
+# url = "http://192.168.1.105:5555/similarity"
+url =os.getenv('TGLE_SIMILARITY_SERVER')
 
 app = Flask(__name__)
 app.config["JSON_AS_ASCII"] = False
@@ -33,34 +36,31 @@ def mkgroup():
                 data = {"word1": groupKeyword[j], "word2": kw}
                 jsonData = requests.get(url, params=data).json()
                 sim_kw.append(round(jsonData["similarity"], 3))
-            # print(sim_kw)
             sim_g.append(sim_kw)
-        print(sim_g)
         sim.append(sim_g)
 
-    len_i = len(sim)  # 7
-    len_j = len(sim[0])  # 3
+    len_i = len(sim)
+    len_j = len(sim[0])
 
     gkey = [[] for j in range(len_j)]
     assign = {}
-    similarity_max = [[0 for i in range(len_j)] for j in range(len_i)]  # 初期化
+    similarity_max = [[0 for i in range(len_j)] for j in range(len_i)]
 
     for i in range(len_i):
         for j in range(len_j):
             similarity_max[i][j] = max(sim[i][j])
 
-    len_g = len(gkey)  # 3  行数：教員のグループキーワード数
-    group = [[] for i in range(len_g)]  # 初期化
+    len_g = len(gkey)
+    group = [[] for i in range(len_g)]
     nps = np.array(similarity_max)
     count = 0
     flag = False
     while True:
         nps_copy = np.copy(nps)
-        # print(nps_copy)
         for i in range(len_g):
             u, s = np.unravel_index(np.argmax(nps_copy), nps_copy.shape)
 
-            # jsonifyのjson.dumpsはnumpy.int型を処理できないので、item()を用いてintにcaskする。
+            # jsonifyのjson.dumpsはnumpy.int型を処理できないので、item()を用いてintにcastする。
             # 参考　https://qiita.com/exp/items/2253e32c22e81e688ef4
             gkey[s].append(u.item())
             assign[str(u.item())] = s.item()  # key: ポストされたユーザ番号(0〜)　value: アサインされたグループ
@@ -75,10 +75,10 @@ def mkgroup():
                 break
         if flag:
             break
+    print(gkey)
+    for k,v in assign.items():
+        print(k,v)
 
-#    戻り値　グループにアサインされたユーザ: gkey, ユーザにアサインされたグループ: assign
-#    この実装ではassignとした。
-#    return jsonify(json.dumps(gkey)), 200
     return jsonify(json.dumps(assign)), 200
 
 @app.route('/postdata', methods=['POST'])
@@ -88,47 +88,14 @@ def postdata():
     gdata = request.get_data().decode('utf-8')
     # JSONはダブルクォーテーション "　を使うため、postmanのjsonデータの設定に注意すること 2022/4/8
     jdata = json.loads(gdata)  # JSON文字列を辞書に変換する
-    # print(jdata)
     # 部分的な取り出しはkeyを利用する。
     print(jdata['groupKeyword'])
 
     for i in range(len(jdata['student'])):
         print(jdata['student'][i])
 
-    #
-    # ここでw2vを呼び出す
-    #
-
     return jsonify({"result": 'Success'}), 200
 
-@app.route('/mkgroup0', methods=['POST'])
-def mkgroup0():
-#    group = ['個人情報','プライバシ','セキュリティ']
-#    group = []
-    jdata = {
-        'group': ['g1', 'g2', 'g3'],
-        'student': [
-        {'name': 'u1', 'kw': ['kw1', 'kw2', 'kw3']},
-        {'name': 'u2', 'kw': ['kw1', 'kw2', 'kw3']},
-        {'name': 'u3', 'kw': ['kw1', 'kw2', 'kw3']}
-    ]
-    }
-
-#OK  値だけの取り出し
-#    for value in jdata.values():
-#        print(value)
-#OK    for key in jdata['student']:
-#OK        print(key)
-#OK    print(jdata['group'])
-#OK    print(jdata['student'][0]['name'],jdata['student'][0]['kw'])
-#NOK    data = json.loads(jdata,object_hook=ObjectLike)
-#NOK    print(data.group)
-#    group = request.args.get('group', '')
-    keyword = request.args.get('keyword', '')
-#    print(type(group), len(group))
-#OK    return jsonify({"result": jdata['group'][0]}), 200
-
-    return jsonify({"result": jdata['group']}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
