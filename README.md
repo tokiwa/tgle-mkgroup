@@ -6,3 +6,8 @@
 
 ![TGLEシステム構成図](TGLE.jpg)
 
+## Flask起動
+
+次のコマンドで起動します。
+tgle-be からは、ポート 9700　にてアクセスします。 
+% sudo FLASK_APP=mkgroup.py flask run --debugger --reload --port 9700 --host 0.0.0.0
